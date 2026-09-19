@@ -174,6 +174,8 @@ do
   vim.o.tabstop = 4
   vim.o.shiftwidth = 4
   vim.o.expandtab = true
+  -- Keep new lines aligned with the previous one when you press Enter / o.
+  vim.o.autoindent = true
 
   -- if performing an operation that would fail due to unsaved changes in the buffer (like `:q`),
   -- instead raise a dialog asking if you wish to save the current file(s)
@@ -221,6 +223,35 @@ do
   -- or just use <C-\><C-n> to exit terminal mode
   vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
+  -- Floating toggle terminal: <leader>t (Space then t) to show/hide.
+  -- Buffer persists while hidden, so pressing <Up> recalls your last command.
+  local term_buf, term_win = nil, nil
+  local function toggle_term()
+    if term_win and vim.api.nvim_win_is_valid(term_win) then
+      vim.api.nvim_win_hide(term_win)
+      term_win = nil
+      return
+    end
+    if not (term_buf and vim.api.nvim_buf_is_valid(term_buf)) then
+      term_buf = vim.api.nvim_create_buf(false, false)
+    end
+    local w, h = vim.o.columns, vim.o.lines
+    term_win = vim.api.nvim_open_win(term_buf, true, {
+      relative = 'editor',
+      width = math.floor(w * 0.85),
+      height = math.floor(h * 0.85),
+      col = math.floor(w * 0.075),
+      row = math.floor(h * 0.075),
+      style = 'minimal',
+      border = 'rounded',
+    })
+    if vim.bo[term_buf].buftype ~= 'terminal' then
+      vim.fn.termopen(vim.o.shell)
+    end
+    vim.cmd 'startinsert'
+  end
+  vim.keymap.set({ 'n', 't' }, '<leader>t', toggle_term, { desc = '[T]oggle floating terminal' })
+
   -- TIP: Disable arrow keys in normal mode
   -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
   -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
@@ -252,6 +283,16 @@ do
     desc = 'Highlight when yanking (copying) text',
     group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
     callback = function() vim.hl.on_yank() end,
+  })
+
+  -- Continue `*` comment leaders (aligned) when pressing Enter/o inside a block comment.
+  vim.api.nvim_create_autocmd('FileType', {
+    desc = 'Auto-continue block comment leaders',
+    group = vim.api.nvim_create_augroup('kickstart-comment-continue', { clear = true }),
+    pattern = { 'c', 'cpp', 'h' },
+    callback = function()
+      vim.opt_local.formatoptions:append 'ro'
+    end,
   })
 end
 
