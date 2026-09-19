@@ -1,5 +1,9 @@
 # kickstart.nvim
 
+> **Note:** This is a personal fork of [kickstart.nvim](https://github.com/nvim-lua/kickstart.nvim).
+> The `master` branch mirrors upstream; personal customizations live on the `melbourne` branch (versioned with SemVer tags, e.g. `v1.0.0`).
+> This config is developed and tested on **macOS (MacBook Pro 2025, M4)**. Some settings — notably system-clipboard integration — may need extra setup on Linux (e.g. installing `xclip`/`wl-clipboard`).
+
 ## Introduction
 
 A starting point for Neovim that is:
