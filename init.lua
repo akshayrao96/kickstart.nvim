@@ -99,15 +99,13 @@ do
   vim.g.maplocalleader = ' '
 
   -- Set to true if you have a Nerd Font installed and selected in the terminal
-  vim.g.have_nerd_font = false
+  -- Ghostty ships Nerd Font icons built in, so this works with plain JetBrains Mono (and over SSH)
+  vim.g.have_nerd_font = true
 
   -- [[ Setting options ]]
   --  See `:help vim.o`
   -- NOTE: You can change these options as you wish!
   --  For more options, you can see `:help option-list`
-
-  -- Add comfortable line spacing for readability
-  vim.o.linespace = 7
 
   -- Make line numbers default
   vim.o.number = true
@@ -125,7 +123,28 @@ do
   --  Schedule the setting after `UiEnter` because it can increase startup-time.
   --  Remove this option if you want your OS clipboard to remain independent.
   --  See `:help 'clipboard'`
-  vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
+  vim.schedule(function()
+    -- Over SSH (e.g. the cloud desktop) there's no OS clipboard, so use OSC 52: Neovim sends
+    -- the yanked text as a terminal escape sequence and the LOCAL terminal (Ghostty) puts it
+    -- on the Mac clipboard. Locally on macOS the normal pbcopy provider is used instead.
+    if vim.env.SSH_CONNECTION then
+      local osc52 = require 'vim.ui.clipboard.osc52'
+      vim.g.clipboard = {
+        name = 'OSC 52',
+        copy = {
+          ['+'] = osc52.copy '+',
+          ['*'] = osc52.copy '*',
+        },
+        -- Paste reads the internal register instead of querying the terminal, so `p` never
+        -- blocks waiting for an OSC 52 response. To paste FROM the Mac, use Cmd+V.
+        paste = {
+          ['+'] = function() return vim.split(vim.fn.getreg '"', '\n') end,
+          ['*'] = function() return vim.split(vim.fn.getreg '"', '\n') end,
+        },
+      }
+    end
+    vim.o.clipboard = 'unnamedplus'
+  end)
 
   -- Enable break indent
   vim.o.breakindent = true
@@ -171,8 +190,8 @@ do
   vim.o.scrolloff = 10
 
   -- Default indentation (guess-indent will override when it detects existing style)
-  vim.o.tabstop = 4
-  vim.o.shiftwidth = 4
+  vim.o.tabstop = 8
+  vim.o.shiftwidth = 8
   vim.o.expandtab = true
   -- Keep new lines aligned with the previous one when you press Enter / o.
   vim.o.autoindent = true
@@ -447,50 +466,33 @@ do
   }
 
   -- [[ Colorscheme ]]
-  vim.pack.add { gh 'folke/tokyonight.nvim' }
-  require('tokyonight').setup {
-    transparent = true,
-    styles = {
-      comments = { italic = false },
-      sidebars = 'transparent',
-      floats = 'transparent',
-    },
+  vim.pack.add { gh 'ellisonleao/gruvbox.nvim' }
+  require('gruvbox').setup {
+    contrast = 'hard', -- darkest gruvbox background (#1d2021) for more contrast
+    italic = { comments = false },
+    transparent_mode = false, -- solid background is easier to read than the wallpaper
   }
-  vim.cmd.colorscheme 'tokyonight-night'
+  vim.o.background = 'dark'
 
-  -- Rust semantic token color overrides for more visual variety
-  -- Applied after ColorScheme event so tokyonight doesn't overwrite them
-  vim.api.nvim_create_autocmd('ColorScheme', {
-    callback = function()
-      vim.api.nvim_set_hl(0, '@lsp.type.function.rust', { fg = '#7aa2f7', bold = true })
-      vim.api.nvim_set_hl(0, '@lsp.type.method.rust', { fg = '#7aa2f7' })
-      vim.api.nvim_set_hl(0, '@lsp.type.macro.rust', { fg = '#bb9af7' })
-      vim.api.nvim_set_hl(0, '@lsp.type.struct.rust', { fg = '#e0af68' })
-      vim.api.nvim_set_hl(0, '@lsp.type.enum.rust', { fg = '#e0af68' })
-      vim.api.nvim_set_hl(0, '@lsp.type.trait.rust', { fg = '#f7768e' })
-      vim.api.nvim_set_hl(0, '@lsp.type.interface.rust', { fg = '#f7768e' })
-      vim.api.nvim_set_hl(0, '@lsp.type.typeAlias.rust', { fg = '#e0af68' })
-      vim.api.nvim_set_hl(0, '@lsp.type.lifetime.rust', { fg = '#f7768e', italic = true })
-      vim.api.nvim_set_hl(0, '@lsp.type.parameter.rust', { fg = '#c0caf5', italic = true })
-      vim.api.nvim_set_hl(0, '@lsp.type.property.rust', { fg = '#73daca' })
-      vim.api.nvim_set_hl(0, '@lsp.type.enumMember.rust', { fg = '#ff9e64' })
-      vim.api.nvim_set_hl(0, '@lsp.type.namespace.rust', { fg = '#2ac3de' })
-    end,
-  })
-  -- Trigger it now too since colorscheme already loaded above
-  vim.api.nvim_set_hl(0, '@lsp.type.function.rust', { fg = '#7aa2f7', bold = true })
-  vim.api.nvim_set_hl(0, '@lsp.type.method.rust', { fg = '#7aa2f7' })
-  vim.api.nvim_set_hl(0, '@lsp.type.macro.rust', { fg = '#bb9af7' })
-  vim.api.nvim_set_hl(0, '@lsp.type.struct.rust', { fg = '#e0af68' })
-  vim.api.nvim_set_hl(0, '@lsp.type.enum.rust', { fg = '#e0af68' })
-  vim.api.nvim_set_hl(0, '@lsp.type.trait.rust', { fg = '#f7768e' })
-  vim.api.nvim_set_hl(0, '@lsp.type.interface.rust', { fg = '#f7768e' })
-  vim.api.nvim_set_hl(0, '@lsp.type.typeAlias.rust', { fg = '#e0af68' })
-  vim.api.nvim_set_hl(0, '@lsp.type.lifetime.rust', { fg = '#f7768e', italic = true })
-  vim.api.nvim_set_hl(0, '@lsp.type.parameter.rust', { fg = '#c0caf5', italic = true })
-  vim.api.nvim_set_hl(0, '@lsp.type.property.rust', { fg = '#73daca' })
-  vim.api.nvim_set_hl(0, '@lsp.type.enumMember.rust', { fg = '#ff9e64' })
-  vim.api.nvim_set_hl(0, '@lsp.type.namespace.rust', { fg = '#2ac3de' })
+  -- Rust semantic token color overrides for more visual variety (gruvbox palette)
+  -- Re-applied on every ColorScheme event so the theme doesn't overwrite them
+  local function rust_highlights()
+    vim.api.nvim_set_hl(0, '@lsp.type.function.rust', { fg = '#83a598', bold = true })
+    vim.api.nvim_set_hl(0, '@lsp.type.method.rust', { fg = '#83a598' })
+    vim.api.nvim_set_hl(0, '@lsp.type.macro.rust', { fg = '#d3869b' })
+    vim.api.nvim_set_hl(0, '@lsp.type.struct.rust', { fg = '#fabd2f' })
+    vim.api.nvim_set_hl(0, '@lsp.type.enum.rust', { fg = '#fabd2f' })
+    vim.api.nvim_set_hl(0, '@lsp.type.trait.rust', { fg = '#fb4934' })
+    vim.api.nvim_set_hl(0, '@lsp.type.interface.rust', { fg = '#fb4934' })
+    vim.api.nvim_set_hl(0, '@lsp.type.typeAlias.rust', { fg = '#fabd2f' })
+    vim.api.nvim_set_hl(0, '@lsp.type.lifetime.rust', { fg = '#fb4934', italic = true })
+    vim.api.nvim_set_hl(0, '@lsp.type.parameter.rust', { fg = '#ebdbb2', italic = true })
+    vim.api.nvim_set_hl(0, '@lsp.type.property.rust', { fg = '#8ec07c' })
+    vim.api.nvim_set_hl(0, '@lsp.type.enumMember.rust', { fg = '#fe8019' })
+    vim.api.nvim_set_hl(0, '@lsp.type.namespace.rust', { fg = '#8ec07c' })
+  end
+  vim.api.nvim_create_autocmd('ColorScheme', { callback = rust_highlights })
+  vim.cmd.colorscheme 'gruvbox'
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
@@ -1001,6 +1003,9 @@ do
   ---@param buf integer
   ---@param language string
   local function treesitter_try_attach(buf, language)
+    -- Check if the buffer is valid (might not be after install completes)
+    if not vim.api.nvim_buf_is_valid(buf) then return end
+
     -- Check if a parser exists and load it
     if not vim.treesitter.language.add(language) then return end
     -- Enable syntax highlighting and other treesitter features
@@ -1061,7 +1066,7 @@ do
   -- require 'kickstart.plugins.indent_line'
   -- require 'kickstart.plugins.lint'
   -- require 'kickstart.plugins.autopairs'
-  -- require 'kickstart.plugins.neo-tree'
+  require 'kickstart.plugins.neo-tree'
   -- require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
 
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
