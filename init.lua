@@ -507,6 +507,9 @@ do
     vim.api.nvim_set_hl(0, '@lsp.type.property.rust', { fg = '#8ec07c' })
     vim.api.nvim_set_hl(0, '@lsp.type.enumMember.rust', { fg = '#fe8019' })
     vim.api.nvim_set_hl(0, '@lsp.type.namespace.rust', { fg = '#8ec07c' })
+    -- clangd marks `bool`/`true`/`false` as macros (they come from <stdbool.h>); clear that so
+    -- treesitter colours them like `void`/`int` and other constants
+    vim.api.nvim_set_hl(0, '@lsp.type.macro.c', {})
   end
   vim.api.nvim_create_autocmd('ColorScheme', { callback = rust_highlights })
   vim.cmd.colorscheme 'gruvbox'
@@ -801,7 +804,8 @@ do
   --  See `:help lsp-config` for information about keys and how to configure
   ---@type table<string, vim.lsp.Config>
   local servers = {
-    clangd = {},
+    -- Mac only: on the cloud desktop (SSH) clangd isn't installed or started
+    clangd = not vim.env.SSH_CONNECTION and {} or nil,
     -- gopls = {},
     -- pyright = {},
     rust_analyzer = {},
