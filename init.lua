@@ -469,8 +469,25 @@ do
   vim.pack.add { gh 'ellisonleao/gruvbox.nvim' }
   require('gruvbox').setup {
     contrast = 'hard', -- darkest gruvbox background (#1d2021) for more contrast
-    italic = { comments = false },
+    italic = { comments = true, strings = false }, -- only comments italic, so italic means "skim this"
     transparent_mode = false, -- solid background is easier to read than the wallpaper
+    -- One colour per meaning: comments and punctuation recede, functions (the verbs) pop.
+    -- Gruvbox makes functions and strings the same green, so functions move to blue.
+    overrides = {
+      ['@function'] = { fg = '#83a598', bold = true },
+      ['@function.call'] = { fg = '#83a598', bold = true },
+      ['@function.method'] = { fg = '#83a598' },
+      ['@function.method.call'] = { fg = '#83a598' },
+      ['@lsp.type.function'] = { fg = '#83a598', bold = true },
+      ['@lsp.type.method'] = { fg = '#83a598' },
+      ['@property'] = { fg = '#8ec07c' }, -- struct fields (node->next) in aqua, away from functions
+      ['@variable.member'] = { fg = '#8ec07c' },
+      ['@lsp.type.property'] = { fg = '#8ec07c' },
+      ['@lsp.type.parameter'] = { fg = '#ebdbb2', italic = true }, -- params vs locals (needs clangd)
+      ['@operator'] = { fg = '#a89984' }, -- dimmer than normal text
+      ['@punctuation.bracket'] = { fg = '#a89984' },
+      ['@punctuation.delimiter'] = { fg = '#a89984' },
+    },
   }
   vim.o.background = 'dark'
 
@@ -784,7 +801,7 @@ do
   --  See `:help lsp-config` for information about keys and how to configure
   ---@type table<string, vim.lsp.Config>
   local servers = {
-    -- clangd = {},
+    clangd = {},
     -- gopls = {},
     -- pyright = {},
     rust_analyzer = {},
