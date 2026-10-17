@@ -189,9 +189,10 @@ do
   -- Minimal number of screen lines to keep above and below the cursor.
   vim.o.scrolloff = 10
 
-  -- Default indentation (guess-indent will override when it detects existing style)
-  vim.o.tabstop = 8
-  vim.o.shiftwidth = 8
+  -- Use six spaces per indentation level.
+  vim.o.tabstop = 6
+  vim.o.shiftwidth = 6
+  vim.o.softtabstop = 6
   vim.o.expandtab = true
   -- Keep new lines aligned with the previous one when you press Enter / o.
   vim.o.autoindent = true
@@ -384,7 +385,7 @@ do
   -- We first install it from https://github.com/NMAC427/guess-indent.nvim
   -- and then call its `setup()` function to start it with default settings.
   vim.pack.add { gh 'NMAC427/guess-indent.nvim' }
-  require('guess-indent').setup {}
+  require('guess-indent').setup { auto_cmd = false }
 
   -- Because lua is a real programming language, you can also have some logic to your installation -
   -- like only installing a plugin if a condition is met.
@@ -895,6 +896,7 @@ do
     format_on_save = function(bufnr)
       -- You can specify filetypes to autoformat on save here:
       local enabled_filetypes = {
+        c = true,
         rust = true,
         -- lua = true,
         -- python = true,
@@ -910,6 +912,7 @@ do
     },
     -- You can also specify external formatters in here.
     formatters_by_ft = {
+      c = { 'clang_format' },
       rust = { 'rustfmt' },
       -- Conform can also run multiple formatters sequentially
       -- python = { "isort", "black" },
