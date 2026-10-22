@@ -111,7 +111,7 @@ do
   vim.o.number = true
   -- You can also add relative line numbers, to help with jumping.
   --  Experiment for yourself to see if you like it!
-  -- vim.o.relativenumber = true
+  vim.o.relativenumber = true
 
   -- Enable mouse mode, can be useful for resizing splits for example!
   vim.o.mouse = 'a'
@@ -467,53 +467,22 @@ do
   }
 
   -- [[ Colorscheme ]]
-  vim.pack.add { gh 'ellisonleao/gruvbox.nvim' }
-  require('gruvbox').setup {
-    contrast = 'hard', -- darkest gruvbox background (#1d2021) for more contrast
-    italic = { comments = true, strings = false }, -- only comments italic, so italic means "skim this"
-    transparent_mode = false, -- solid background is easier to read than the wallpaper
-    -- One colour per meaning: comments and punctuation recede, functions (the verbs) pop.
-    -- Gruvbox makes functions and strings the same green, so functions move to blue.
-    overrides = {
-      ['@function'] = { fg = '#83a598', bold = true },
-      ['@function.call'] = { fg = '#83a598', bold = true },
-      ['@function.method'] = { fg = '#83a598' },
-      ['@function.method.call'] = { fg = '#83a598' },
-      ['@lsp.type.function'] = { fg = '#83a598', bold = true },
-      ['@lsp.type.method'] = { fg = '#83a598' },
-      ['@property'] = { fg = '#8ec07c' }, -- struct fields (node->next) in aqua, away from functions
-      ['@variable.member'] = { fg = '#8ec07c' },
-      ['@lsp.type.property'] = { fg = '#8ec07c' },
-      ['@lsp.type.parameter'] = { fg = '#ebdbb2', italic = true }, -- params vs locals (needs clangd)
-      ['@operator'] = { fg = '#a89984' }, -- dimmer than normal text
-      ['@punctuation.bracket'] = { fg = '#a89984' },
-      ['@punctuation.delimiter'] = { fg = '#a89984' },
-    },
+  vim.pack.add { gh 'rebelot/kanagawa.nvim' }
+  require('kanagawa').setup {
+    theme = 'wave',
+    transparent = false,
+    commentStyle = { italic = true },
+    keywordStyle = { italic = false },
   }
   vim.o.background = 'dark'
 
-  -- Rust semantic token color overrides for more visual variety (gruvbox palette)
-  -- Re-applied on every ColorScheme event so the theme doesn't overwrite them
-  local function rust_highlights()
-    vim.api.nvim_set_hl(0, '@lsp.type.function.rust', { fg = '#83a598', bold = true })
-    vim.api.nvim_set_hl(0, '@lsp.type.method.rust', { fg = '#83a598' })
-    vim.api.nvim_set_hl(0, '@lsp.type.macro.rust', { fg = '#d3869b' })
-    vim.api.nvim_set_hl(0, '@lsp.type.struct.rust', { fg = '#fabd2f' })
-    vim.api.nvim_set_hl(0, '@lsp.type.enum.rust', { fg = '#fabd2f' })
-    vim.api.nvim_set_hl(0, '@lsp.type.trait.rust', { fg = '#fb4934' })
-    vim.api.nvim_set_hl(0, '@lsp.type.interface.rust', { fg = '#fb4934' })
-    vim.api.nvim_set_hl(0, '@lsp.type.typeAlias.rust', { fg = '#fabd2f' })
-    vim.api.nvim_set_hl(0, '@lsp.type.lifetime.rust', { fg = '#fb4934', italic = true })
-    vim.api.nvim_set_hl(0, '@lsp.type.parameter.rust', { fg = '#ebdbb2', italic = true })
-    vim.api.nvim_set_hl(0, '@lsp.type.property.rust', { fg = '#8ec07c' })
-    vim.api.nvim_set_hl(0, '@lsp.type.enumMember.rust', { fg = '#fe8019' })
-    vim.api.nvim_set_hl(0, '@lsp.type.namespace.rust', { fg = '#8ec07c' })
-    -- clangd marks `bool`/`true`/`false` as macros (they come from <stdbool.h>); clear that so
-    -- treesitter colours them like `void`/`int` and other constants
-    vim.api.nvim_set_hl(0, '@lsp.type.macro.c', {})
-  end
-  vim.api.nvim_create_autocmd('ColorScheme', { callback = rust_highlights })
-  vim.cmd.colorscheme 'gruvbox'
+  -- Let treesitter colour stdbool macros like built-in types and constants.
+  vim.api.nvim_create_autocmd('ColorScheme', {
+    callback = function()
+      vim.api.nvim_set_hl(0, '@lsp.type.macro.c', {})
+    end,
+  })
+  vim.cmd.colorscheme 'kanagawa-wave'
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
