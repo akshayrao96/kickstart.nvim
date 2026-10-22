@@ -8,9 +8,8 @@ vim.pack.add {
   'https://github.com/nvim-tree/nvim-web-devicons', -- coloured file-type icons
 }
 
--- `\` or `<leader>e` (Space e = [E]xplorer) toggles a floating tree over the editor, jumping to the current file. Hidden otherwise.
+-- `\` toggles a floating tree over the editor, jumping to the current file. Hidden otherwise.
 vim.keymap.set('n', '\\', '<Cmd>Neotree float toggle reveal<CR>', { desc = 'NeoTree toggle', silent = true })
-vim.keymap.set('n', '<leader>e', '<Cmd>Neotree float toggle reveal<CR>', { desc = '[E]xplorer', silent = true })
 
 require('neo-tree').setup {
   popup_border_style = 'rounded',
